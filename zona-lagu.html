@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zona Lagu</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --accent: #E8FF5A;
+    --dark: #0A0A0F;
+    --surface: #13131A;
+    --surface2: #1C1C26;
+    --surface3: #252530;
+    --text: #F0F0F5;
+    --muted: #7070A0;
+    --border: rgba(255,255,255,0.08);
+  }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--dark);
+    color: var(--text);
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  .app {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    grid-template-rows: 64px 1fr 110px;
+    height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,10,15,0.95);
+    backdrop-filter: blur(12px);
+    position: relative;
+    z-index: 10;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(232,255,90,0.5);
+  }
+  .logo span { color: var(--text); }
+  .search-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    padding: 8px 18px;
+    gap: 10px;
+    width: 300px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-wrap:focus-within {
+    border-color: rgba(232,255,90,0.5);
+    box-shadow: 0 0 20px rgba(232,255,90,0.1);
+  }
+  .search-wrap input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    width: 100%;
+  }
+  .search-wrap input::placeholder { color: var(--muted); }
+  .search-icon { color: var(--muted); font-size: 15px; }
+  .header-badge {
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 20px 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface3) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 0 22px 10px;
+    margin-top: 10px;
+  }
+  .playlist-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 22px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .playlist-item:hover { background: var(--surface2); }
+  .playlist-item.active {
+    background: rgba(232,255,90,0.07);
+    border-left-color: var(--accent);
+  }
+  .playlist-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .playlist-info p { font-size: 13px; font-weight: 500; color: var(--text); }
+  .playlist-info span { font-size: 11px; color: var(--muted); }
+  .sidebar-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 14px 22px;
+  }
+
+  /* MAIN */
+  .main {
+    overflow-y: auto;
+    padding: 24px 28px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface3) transparent;
+  }
+  .main::-webkit-scrollbar { width: 4px; }
+  .main::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
+
+  /* NOW PLAYING HERO */
+  .now-playing-hero {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 28px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .now-playing-hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: rgba(232,255,90,0.05);
+    filter: blur(40px);
+    pointer-events: none;
+  }
+  .now-playing-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 100px;
+    width: 150px; height: 150px;
+    border-radius: 50%;
+    background: rgba(255,90,138,0.04);
+    filter: blur(30px);
+    pointer-events: none;
+  }
+  .hero-cover {
+    width: 190px;
+    height: 190px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 72px;
+    flex-shrink: 0;
+    transition: transform 0.5s ease;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-cover.spinning { animation: slowspin 12s linear infinite; }
+  @keyframes slowspin { to { transform: rotate(360deg); } }
+  .hero-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+  .now-badge {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pulse-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1.5s ease infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    letter-spacing: 1px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .hero-artist { font-size: 14px; color: var(--muted); margin-bottom: 22px; }
+  .progress-wrap { margin-bottom: 18px; }
+  .progress-bar {
+    width: 100%;
+    height: 5px;
+    background: var(--surface3);
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .progress-bar:hover .progress-fill::after { transform: translateY(-50%) scale(1.3); }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #AAEE00);
+    border-radius: 5px;
+    width: 0%;
+    transition: width 0.8s linear;
+    position: relative;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -6px; top: 50%;
+    transform: translateY(-50%);
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px rgba(232,255,90,0.7);
+    transition: transform 0.15s;
+  }
+  .time-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .controls { display: flex; align-items: center; gap: 14px; }
+  .ctrl-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 20px;
+    padding: 8px;
+    border-radius: 50%;
+    transition: color 0.15s, transform 0.15s, background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .ctrl-btn:hover { color: var(--text); transform: scale(1.12); background: var(--surface3); }
+  .ctrl-btn.play {
+    width: 52px; height: 52px;
+    background: var(--accent);
+    color: #0A0A0F;
+    font-size: 20px;
+    box-shadow: 0 0 25px rgba(232,255,90,0.4);
+    transition: box-shadow 0.2s, transform 0.15s;
+  }
+  .ctrl-btn.play:hover {
+    box-shadow: 0 0 40px rgba(232,255,90,0.6);
+    transform: scale(1.08);
+    background: var(--accent);
+    color: #0A0A0F;
+  }
+  .ctrl-btn.active-ctrl { color: var(--accent); }
+
+  /* GENRE TAGS */
+  .genre-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+  .genre-tag {
+    padding: 7px 18px;
+    border-radius: 22px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+  .genre-tag:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+  .genre-tag.active { background: var(--accent); color: #0A0A0F; border-color: var(--accent); font-weight: 600; }
+
+  /* SECTION */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1.5px;
+  }
+  .song-count-badge {
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface2);
+    padding: 4px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  /* SONGS LIST */
+  .songs-grid { display: flex; flex-direction: column; gap: 2px; }
+  .song-row {
+    display: grid;
+    grid-template-columns: 32px 48px 1fr 70px 38px;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+  }
+  .song-row:hover { background: var(--surface2); }
+  .song-row.active {
+    background: rgba(232,255,90,0.08);
+    border-color: rgba(232,255,90,0.15);
+  }
+  .song-num { font-size: 13px; color: var(--muted); text-align: center; }
+  .song-row.active .song-num { color: var(--accent); font-weight: 600; }
+  .song-cover {
+    width: 46px; height: 46px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .song-meta p { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .song-meta span { font-size: 11px; color: var(--muted); }
+  .song-dur { font-size: 12px; color: var(--muted); text-align: right; }
+  .song-like {
+    background: none; border: none; cursor: pointer;
+    font-size: 16px; opacity: 0.35;
+    transition: opacity 0.15s, transform 0.15s;
+    padding: 4px;
+  }
+  .song-like:hover { opacity: 1; transform: scale(1.2); }
+  .song-like.liked { opacity: 1; }
+
+  /* PLAYER BAR */
+  .player-bar {
+    grid-column: 1 / -1;
+    background: rgba(19,19,26,0.97);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    padding: 0 28px;
+    gap: 28px;
+  }
+  .bar-track { display: flex; align-items: center; gap: 14px; min-width: 220px; }
+  .bar-cover {
+    width: 48px; height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .bar-meta p { font-size: 13px; font-weight: 500; }
+  .bar-meta span { font-size: 11px; color: var(--muted); }
+  .bar-controls { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .bar-btns { display: flex; align-items: center; gap: 10px; }
+  .bar-progress {
+    width: 100%; max-width: 480px;
+    height: 4px; background: var(--surface3);
+    border-radius: 4px; cursor: pointer;
+    transition: height 0.15s;
+  }
+  .bar-progress:hover { height: 6px; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #AAEE00); border-radius: 4px; width: 0%; transition: width 0.8s linear; }
+  .bar-right { display: flex; align-items: center; gap: 14px; min-width: 160px; justify-content: flex-end; }
+  .vol-wrap { display: flex; align-items: center; gap: 8px; }
+  .vol-icon { font-size: 14px; color: var(--muted); cursor: pointer; }
+  .vol-slider {
+    width: 90px; height: 4px;
+    background: var(--surface3); border-radius: 4px;
+    cursor: pointer; position: relative;
+  }
+  .vol-fill { height: 100%; background: var(--muted); border-radius: 4px; width: 70%; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--muted);
+  }
+  .empty-state div { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">ZONA <span>LAGU</span></div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Cari lagu atau artis..." oninput="filterSongs(this.value)">
+    </div>
+    <div class="header-badge">🎧 Musik Terbaik</div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="section-label">Playlist</div>
+    <div class="playlist-item active" onclick="setPlaylist(0, this)">
+      <div class="playlist-thumb" style="background:rgba(232,255,90,0.12)">🎵</div>
+      <div class="playlist-info"><p>Semua Lagu</p><span>20 lagu</span></div>
+    </div>
+    <div class="playlist-item" onclick="setPlaylist(1, this)">
+      <div class="playlist-thumb" style="background:rgba(255,90,138,0.12)">💖</div>
+      <div class="playlist-info"><p>Favorit</p><span>8 lagu</span></div>
+    </div>
+    <div class="playlist-item" onclick="setPlaylist(2, this)">
+      <div class="playlist-thumb" style="background:rgba(90,138,255,0.12)">🌙</div>
+      <div class="playlist-info"><p>Malam Santai</p><span>12 lagu</span></div>
+    </div>
+    <div class="playlist-item" onclick="setPlaylist(3, this)">
+      <div class="playlist-thumb" style="background:rgba(255,200,90,0.12)">☀️</div>
+      <div class="playlist-info"><p>Pagi Semangat</p><span>7 lagu</span></div>
+    </div>
+    <div class="playlist-item" onclick="setPlaylist(4, this)">
+      <div class="playlist-thumb" style="background:rgba(90,255,180,0.12)">🎸</div>
+      <div class="playlist-info"><p>Rock Klasik</p><span>15 lagu</span></div>
+    </div>
+    <div class="playlist-item" onclick="setPlaylist(5, this)">
+      <div class="playlist-thumb" style="background:rgba(150,90,255,0.12)">🎤</div>
+      <div class="playlist-info"><p>R&amp;B Hits</p><span>10 lagu</span></div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="section-label">Baru Diputar</div>
+    <div class="playlist-item" onclick="setPlaylist(6, this)">
+      <div class="playlist-thumb" style="background:rgba(255,150,90,0.12)">🎹</div>
+      <div class="playlist-info"><p>Piano Jazz</p><span>2 hari lalu</span></div>
+    </div>
+    <div class="playlist-item" onclick="setPlaylist(7, this)">
+      <div class="playlist-thumb" style="background:rgba(90,200,255,0.12)">🌊</div>
+      <div class="playlist-info"><p>Chill Vibes</p><span>5 hari lalu</span></div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="section-label">Cepat</div>
+    <div class="playlist-item" onclick="shuffleAll()">
+      <div class="playlist-thumb" style="background:rgba(232,255,90,0.08)">🔀</div>
+      <div class="playlist-info"><p>Putar Acak</p><span>Semua lagu</span></div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- Hero -->
+    <div class="now-playing-hero">
+      <div class="hero-cover" id="heroCover" style="background:rgba(232,255,90,0.12)">🎵</div>
+      <div class="hero-info">
+        <div class="now-badge">
+          <span class="pulse-dot" id="pulseDot" style="opacity:0"></span>
+          Sedang Diputar
+        </div>
+        <div class="hero-title" id="heroTitle">Pilih Lagu</div>
+        <div class="hero-artist" id="heroArtist">Klik lagu di bawah untuk memulai</div>
+        <div class="progress-wrap">
+          <div class="progress-bar" id="heroProgressBar" onclick="seekHero(event)">
+            <div class="progress-fill" id="heroProgress"></div>
+          </div>
+          <div class="time-row">
+            <span id="timeNow">0:00</span>
+            <span id="timeTot">0:00</span>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="ctrl-btn" id="shuffleBtn" onclick="toggleShuffle()" title="Acak">🔀</button>
+          <button class="ctrl-btn" onclick="prevSong()" title="Sebelumnya">⏮</button>
+          <button class="ctrl-btn play" id="mainPlayBtn" onclick="togglePlay()">▶</button>
+          <button class="ctrl-btn" onclick="nextSong()" title="Berikutnya">⏭</button>
+          <button class="ctrl-btn" id="repeatBtn" onclick="toggleRepeat()" title="Ulangi">🔁</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Genre Filter -->
+    <div class="genre-tags" id="genreTags">
+      <div class="genre-tag active" onclick="filterGenre('Semua', this)">Semua</div>
+      <div class="genre-tag" onclick="filterGenre('Pop', this)">Pop</div>
+      <div class="genre-tag" onclick="filterGenre('Rock', this)">Rock</div>
+      <div class="genre-tag" onclick="filterGenre('Jazz', this)">Jazz</div>
+      <div class="genre-tag" onclick="filterGenre('R&B', this)">R&amp;B</div>
+      <div class="genre-tag" onclick="filterGenre('Electronic', this)">Electronic</div>
+      <div class="genre-tag" onclick="filterGenre('Indie', this)">Indie</div>
+    </div>
+
+    <!-- Song List -->
+    <div class="section-header">
+      <div class="section-title">Daftar Lagu</div>
+      <span class="song-count-badge" id="songCount">20 lagu</span>
+    </div>
+    <div class="songs-grid" id="songsList"></div>
+
+  </main>
+
+  <!-- PLAYER BAR -->
+  <div class="player-bar">
+    <div class="bar-track">
+      <div class="bar-cover" id="barCover" style="background:rgba(232,255,90,0.12)">🎵</div>
+      <div class="bar-meta">
+        <p id="barTitle">Zona Lagu</p>
+        <span id="barArtist">Pilih lagu</span>
+      </div>
+    </div>
+    <div class="bar-controls">
+      <div class="bar-btns">
+        <button class="ctrl-btn" style="font-size:15px" onclick="prevSong()">⏮</button>
+        <button class="ctrl-btn play" style="width:40px;height:40px;font-size:16px" id="barPlayBtn" onclick="togglePlay()">▶</button>
+        <button class="ctrl-btn" style="font-size:15px" onclick="nextSong()">⏭</button>
+      </div>
+      <div class="bar-progress" id="barProgressBar" onclick="seekBar(event)">
+        <div class="bar-fill" id="barProgress"></div>
+      </div>
+    </div>
+    <div class="bar-right">
+      <div class="vol-wrap">
+        <span class="vol-icon" onclick="toggleMute()">🔊</span>
+        <div class="vol-slider" onclick="setVolume(event)">
+          <div class="vol-fill" id="volFill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const songs = [
+  {id:1,  title:"Satu",              artist:"Yura Yunita",        dur:"3:42", genre:"Pop",        color:"rgba(232,255,90,0.18)",  icon:"🎤", liked:true},
+  {id:2,  title:"Tak Ingin Usai",    artist:"Afgan",               dur:"4:15", genre:"Pop",        color:"rgba(255,90,138,0.18)",  icon:"💫", liked:false},
+  {id:3,  title:"Lemon Tree",        artist:"Fools Garden",        dur:"3:56", genre:"Rock",       color:"rgba(90,255,180,0.18)",  icon:"🍋", liked:false},
+  {id:4,  title:"Biru",              artist:"Vidi Aldiano",        dur:"3:28", genre:"Pop",        color:"rgba(90,138,255,0.18)",  icon:"🌊", liked:true},
+  {id:5,  title:"Blue in Green",     artist:"Miles Davis",         dur:"5:37", genre:"Jazz",       color:"rgba(150,90,255,0.18)",  icon:"🎺", liked:false},
+  {id:6,  title:"Autumn Leaves",     artist:"Bill Evans",          dur:"6:02", genre:"Jazz",       color:"rgba(255,200,90,0.18)",  icon:"🍂", liked:false},
+  {id:7,  title:"Gravity",           artist:"John Mayer",          dur:"4:05", genre:"Indie",      color:"rgba(232,255,90,0.18)",  icon:"🎸", liked:true},
+  {id:8,  title:"Titanium",          artist:"David Guetta ft. Sia",dur:"4:06", genre:"Electronic", color:"rgba(90,200,255,0.18)",  icon:"⚡", liked:false},
+  {id:9,  title:"Fallin'",           artist:"Alicia Keys",         dur:"3:29", genre:"R&B",        color:"rgba(255,90,138,0.18)",  icon:"🎹", liked:true},
+  {id:10, title:"No Ordinary Love",  artist:"Sade",                dur:"4:52", genre:"R&B",        color:"rgba(150,90,255,0.18)",  icon:"🌹", liked:false},
+  {id:11, title:"Bohemian Rhapsody", artist:"Queen",               dur:"5:55", genre:"Rock",       color:"rgba(255,150,90,0.18)",  icon:"👑", liked:true},
+  {id:12, title:"Hotel California",  artist:"Eagles",              dur:"6:30", genre:"Rock",       color:"rgba(90,255,180,0.18)",  icon:"🏨", liked:false},
+  {id:13, title:"Levitating",        artist:"Dua Lipa",            dur:"3:23", genre:"Pop",        color:"rgba(232,255,90,0.18)",  icon:"✨", liked:false},
+  {id:14, title:"Blinding Lights",   artist:"The Weeknd",          dur:"3:20", genre:"Electronic", color:"rgba(255,90,138,0.18)",  icon:"💡", liked:true},
+  {id:15, title:"Shape of You",      artist:"Ed Sheeran",          dur:"3:53", genre:"Pop",        color:"rgba(90,138,255,0.18)",  icon:"💙", liked:false},
+  {id:16, title:"Redbone",           artist:"Childish Gambino",    dur:"5:27", genre:"R&B",        color:"rgba(255,200,90,0.18)",  icon:"🔥", liked:false},
+  {id:17, title:"Midnight City",     artist:"M83",                 dur:"4:03", genre:"Electronic", color:"rgba(90,200,255,0.18)",  icon:"🌃", liked:true},
+  {id:18, title:"Maps",              artist:"Yeah Yeah Yeahs",     dur:"3:42", genre:"Indie",      color:"rgba(90,255,180,0.18)",  icon:"🗺️", liked:false},
+  {id:19, title:"Feels Like Summer", artist:"Childish Gambino",    dur:"3:04", genre:"R&B",        color:"rgba(255,150,90,0.18)",  icon:"☀️", liked:false},
+  {id:20, title:"Runaway",           artist:"Kanye West",          dur:"9:08", genre:"Electronic", color:"rgba(150,90,255,0.18)",  icon:"🎧", liked:true},
+];
+
+let currentIndex = 0;
+let isPlaying = false;
+let isRepeat = false;
+let isShuffle = false;
+let progress = 0;
+let timer = null;
+let filtered = [...songs];
+let currentGenre = 'Semua';
+let searchTerm = '';
+let volume = 70;
+let muted = false;
+
+function parseDur(dur) {
+  const [m, s] = dur.split(':').map(Number);
+  return m * 60 + s;
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function renderSongs() {
+  const list = document.getElementById('songsList');
+  document.getElementById('songCount').textContent = filtered.length + ' lagu';
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div>🔍</div><p>Tidak ada lagu yang ditemukan</p></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map((s, i) => {
+    const realIdx = songs.indexOf(s);
+    const isActive = realIdx === currentIndex;
+    return `
+      <div class="song-row ${isActive ? 'active' : ''}" onclick="playSong(${realIdx})">
+        <div class="song-num">${isActive && isPlaying ? '♫' : i + 1}</div>
+        <div class="song-cover" style="background:${s.color}">${s.icon}</div>
+        <div class="song-meta">
+          <p>${s.title}</p>
+          <span>${s.artist} · ${s.genre}</span>
+        </div>
+        <div class="song-dur">${s.dur}</div>
+        <button class="song-like ${s.liked ? 'liked' : ''}" onclick="event.stopPropagation(); toggleLike(${s.id})">${s.liked ? '❤️' : '🤍'}</button>
+      </div>`;
+  }).join('');
+}
+
+function updateHero() {
+  const s = songs[currentIndex];
+  document.getElementById('heroTitle').textContent = s.title;
+  document.getElementById('heroArtist').textContent = s.artist + ' · ' + s.genre;
+  document.getElementById('heroCover').textContent = s.icon;
+  document.getElementById('heroCover').style.background = s.color;
+  document.getElementById('timeTot').textContent = s.dur;
+  document.getElementById('barTitle').textContent = s.title;
+  document.getElementById('barArtist').textContent = s.artist;
+  document.getElementById('barCover').textContent = s.icon;
+  document.getElementById('barCover').style.background = s.color;
+}
+
+function updateProgress() {
+  const s = songs[currentIndex];
+  const tot = parseDur(s.dur);
+  const pct = tot > 0 ? (progress / tot) * 100 : 0;
+  document.getElementById('heroProgress').style.width = pct + '%';
+  document.getElementById('barProgress').style.width = pct + '%';
+  document.getElementById('timeNow').textContent = formatTime(progress);
+}
+
+function startTimer() {
+  clearInterval(timer);
+  const s = songs[currentIndex];
+  const tot = parseDur(s.dur);
+  timer = setInterval(() => {
+    if (!isPlaying) return;
+    progress++;
+    if (progress >= tot) {
+      if (isRepeat) {
+        progress = 0;
+      } else {
+        nextSong();
+        return;
+      }
+    }
+    updateProgress();
+  }, 1000);
+}
+
+function playSong(idx) {
+  currentIndex = idx;
+  progress = 0;
+  isPlaying = true;
+  updateHero();
+  updateProgress();
+  updatePlayBtns();
+  renderSongs();
+  startTimer();
+  document.getElementById('heroCover').classList.add('spinning');
+  document.getElementById('pulseDot').style.opacity = '1';
+}
+
+function togglePlay() {
+  if (!isPlaying && progress === 0 && filtered.length > 0) {
+    const firstIdx = songs.indexOf(filtered[0]);
+    playSong(firstIdx);
+    return;
+  }
+  isPlaying = !isPlaying;
+  updatePlayBtns();
+  if (isPlaying) {
+    startTimer();
+    document.getElementById('heroCover').classList.add('spinning');
+    document.getElementById('pulseDot').style.opacity = '1';
+  } else {
+    document.getElementById('heroCover').classList.remove('spinning');
+    document.getElementById('pulseDot').style.opacity = '0.3';
+  }
+  renderSongs();
+}
+
+function updatePlayBtns() {
+  const icon = isPlaying ? '⏸' : '▶';
+  document.getElementById('mainPlayBtn').textContent = icon;
+  document.getElementById('barPlayBtn').textContent = icon;
+}
+
+function nextSong() {
+  if (isShuffle) {
+    const r = Math.floor(Math.random() * filtered.length);
+    playSong(songs.indexOf(filtered[r]));
+    return;
+  }
+  const curFiltered = filtered.indexOf(songs[currentIndex]);
+  const nextFiltered = (curFiltered + 1) % filtered.length;
+  playSong(songs.indexOf(filtered[nextFiltered]));
+}
+
+function prevSong() {
+  if (progress > 4) { progress = 0; updateProgress(); return; }
+  const curFiltered = filtered.indexOf(songs[currentIndex]);
+  const prevFiltered = (curFiltered - 1 + filtered.length) % filtered.length;
+  playSong(songs.indexOf(filtered[prevFiltered]));
+}
+
+function toggleShuffle() {
+  isShuffle = !isShuffle;
+  document.getElementById('shuffleBtn').classList.toggle('active-ctrl', isShuffle);
+}
+
+function toggleRepeat() {
+  isRepeat = !isRepeat;
+  document.getElementById('repeatBtn').classList.toggle('active-ctrl', isRepeat);
+}
+
+function shuffleAll() {
+  isShuffle = true;
+  document.getElementById('shuffleBtn').classList.add('active-ctrl');
+  const r = Math.floor(Math.random() * filtered.length);
+  playSong(songs.indexOf(filtered[r]));
+}
+
+function seekHero(e) {
+  const bar = document.getElementById('heroProgressBar');
+  const rect = bar.getBoundingClientRect();
+  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  progress = Math.floor(pct * parseDur(songs[currentIndex].dur));
+  updateProgress();
+}
+
+function seekBar(e) {
+  const bar = document.getElementById('barProgressBar');
+  const rect = bar.getBoundingClientRect();
+  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  progress = Math.floor(pct * parseDur(songs[currentIndex].dur));
+  updateProgress();
+}
+
+function setVolume(e) {
+  const bar = e.currentTarget;
+  const rect = bar.getBoundingClientRect();
+  volume = Math.round(Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100)));
+  muted = volume === 0;
+  document.getElementById('volFill').style.width = volume + '%';
+  document.getElementById('volIcon') && (document.getElementById('volIcon').textContent = volume === 0 ? '🔇' : '🔊');
+}
+
+function toggleMute() {
+  muted = !muted;
+  document.getElementById('volFill').style.width = muted ? '0%' : volume + '%';
+}
+
+function toggleLike(id) {
+  const s = songs.find(x => x.id === id);
+  if (s) s.liked = !s.liked;
+  renderSongs();
+}
+
+function filterGenre(genre, el) {
+  currentGenre = genre;
+  document.querySelectorAll('.genre-tag').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  applyFilter();
+}
+
+function filterSongs(val) {
+  searchTerm = val.toLowerCase();
+  applyFilter();
+}
+
+function applyFilter() {
+  filtered = songs.filter(s => {
+    const matchGenre = currentGenre === 'Semua' || s.genre === currentGenre;
+    const matchSearch = !searchTerm ||
+      s.title.toLowerCase().includes(searchTerm) ||
+      s.artist.toLowerCase().includes(searchTerm);
+    return matchGenre && matchSearch;
+  });
+  renderSongs();
+}
+
+function setPlaylist(idx, el) {
+  document.querySelectorAll('.playlist-item').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Init
+renderSongs();
+updateHero();
+updateProgress();
+</script>
+</body>
+</html>
